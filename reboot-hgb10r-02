@@ -1,0 +1,70 @@
+#!/bin/bash
+
+# Reboot a HGB10R-02 NET/Claro router, or similar
+# Reinicie um roteador HGB10R-02 da NET/Claro, ou semelhante
+
+USAGE="Usage: reboot-hgb10r-02 <ip address>"
+
+ROUTER=$1
+
+if ! [ -n "$ROUTER" ]; then
+	echo -e "Error: missing IP address of the router\n\n$USAGE"
+	exit 1
+fi
+
+if ! [ -n "$AUTHORIZATION" ]; then
+	echo "Could not get credentials from \$AUTHORIZATION, enter your credentials or abort with Ctrl+C"
+
+	echo -n "Username: "
+	read username
+
+	echo -n "Password: "
+	read -s password
+	echo
+
+	AUTHORIZATION="Basic $(echo -n "$username:$password" | base64)"
+
+	echo "To have the credentials read automatically, pass AUTHORIZATION=\"$AUTHORIZATION\""
+	echo "Note: HTTP Basic Authorization fields can be trivially decoded to the original username and password"
+fi
+
+HTTP_AUTH="Authorization: $AUTHORIZATION"
+
+SESSION_KEY=$(curl "http://$ROUTER/resetrouter.html" -H "$HTTP_AUTH" -s | grep 'sessionKey=' | grep -o -E '[0-9]+')
+
+if ! [ -n "$SESSION_KEY" ]; then
+	echo "Error: could not obtain a session key"
+	exit 1
+fi
+
+curl "http://$ROUTER/rebootinfo.cgi?sessionKey=$SESSION_KEY" -H "$HTTP_AUTH" -s | grep -q 'The Broadband Router is rebooting.'
+
+if [ $? -ne 0 ]; then
+	echo "Error: router refused to reboot with the provided session key"
+	echo 1
+fi
+
+echo "Rebooting"
+started=$(date +%s)
+
+# avoid pinging the router *before* it actually goes down
+delta=10
+sleep $delta
+
+while [ $delta -lt 300 ]; do
+	curl "http://$ROUTER" -H "$HTTP_AUTH" -s -m5 >/dev/null
+
+	curl_exit=$?
+	now=$(date +%s)
+	delta=$((now - started))
+
+	if [ $curl_exit -eq 0 ]; then
+		echo "Router at $ROUTER back up after $delta seconds"
+		exit 1
+	fi
+
+	sleep 5
+done
+
+echo "Error: router not yet back up after $delta seconds"
+exit 1
