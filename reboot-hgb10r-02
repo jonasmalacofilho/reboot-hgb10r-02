@@ -7,12 +7,12 @@ USAGE="Usage: reboot-hgb10r-02 <ip address>"
 
 ROUTER=$1
 
-if ! [ -n "$ROUTER" ]; then
+if [ -z "$ROUTER" ]; then
 	echo -e "Error: missing IP address of the router\n\n$USAGE"
 	exit 1
 fi
 
-if ! [ -n "$AUTHORIZATION" ]; then
+if  [ -z "$AUTHORIZATION" ]; then
 	echo "Could not get credentials from \$AUTHORIZATION, enter your credentials or abort with Ctrl+C"
 
 	echo -n "Username: "
@@ -32,7 +32,7 @@ HTTP_AUTH="Authorization: $AUTHORIZATION"
 
 SESSION_KEY=$(curl "http://$ROUTER/resetrouter.html" -H "$HTTP_AUTH" -s | grep 'sessionKey=' | grep -o -E '[0-9]+')
 
-if ! [ -n "$SESSION_KEY" ]; then
+if [ -z "$SESSION_KEY" ]; then
 	echo "Error: could not obtain a session key"
 	exit 1
 fi
