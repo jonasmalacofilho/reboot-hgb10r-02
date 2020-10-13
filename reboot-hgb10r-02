@@ -60,7 +60,7 @@ while [ $delta -lt 300 ]; do
 
 	if [ $curl_exit -eq 0 ]; then
 		echo "Router at $ROUTER back up after $delta seconds"
-		exit 1
+		exit 0
 	fi
 
 	sleep 5
