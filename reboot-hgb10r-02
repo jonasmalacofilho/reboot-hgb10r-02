@@ -37,9 +37,7 @@ if [ -z "$SESSION_KEY" ]; then
 	exit 1
 fi
 
-curl "http://$ROUTER/rebootinfo.cgi?sessionKey=$SESSION_KEY" -H "$HTTP_AUTH" -s | grep -q 'The Broadband Router is rebooting.'
-
-if [ $? -ne 0 ]; then
+if curl "http://$ROUTER/rebootinfo.cgi?sessionKey=$SESSION_KEY" -H "$HTTP_AUTH" -s | grep -q 'The Broadband Router is rebooting.'; then
 	echo "Error: router refused to reboot with the provided session key"
 	echo 1
 fi
