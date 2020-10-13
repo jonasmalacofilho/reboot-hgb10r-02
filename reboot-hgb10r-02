@@ -16,10 +16,10 @@ if  [ -z "$AUTHORIZATION" ]; then
 	echo "Could not get credentials from \$AUTHORIZATION, enter your credentials or abort with Ctrl+C"
 
 	echo -n "Username: "
-	read username
+	read -r username
 
 	echo -n "Password: "
-	read -s password
+	read -rs password
 	echo
 
 	AUTHORIZATION="Basic $(echo -n "$username:$password" | base64)"
